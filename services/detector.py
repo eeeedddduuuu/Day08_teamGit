@@ -248,10 +248,12 @@ def detect(file_path: str, job_dir: str) -> Dict:
                 "detections": detections
             }
         ]
-        # 保存证据帧（图片本身）
+        # 保存证据帧（图片本身 + 检测框）
         evidence_path = os.path.join(keyframes_dir, "frame_0000.jpg")
         img = cv2.imread(file_path)
         if img is not None:
+            if detections:
+                img = _draw_boxes(img, detections)
             cv2.imwrite(evidence_path, img)
         evidence_frames = ["keyframes/frame_0000.jpg"]
     else:
@@ -272,6 +274,20 @@ def detect(file_path: str, job_dir: str) -> Dict:
         "evidence_frames": evidence_frames,
         "summary": summary
     }
+
+
+def _draw_boxes(image, detections):
+    """在图片上绘制检测框和标签。"""
+    import cv2 as cv
+    img = image.copy()
+    colors = [(0, 255, 0), (255, 0, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255)]
+    for i, det in enumerate(detections):
+        x1, y1, x2, y2 = det["bbox"]
+        label = f"{det['class']} {det['confidence']:.2f}"
+        color = colors[i % len(colors)]
+        cv.rectangle(img, (x1, y1), (x2, y2), color, 2)
+        cv.putText(img, label, (x1, max(y1 - 5, 15)), cv.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
+    return img
 
 
 def _save_evidence_frames(
@@ -320,6 +336,10 @@ def _save_evidence_frames(
             if frame_idx in top_indices:
                 filename = f"frame_{frame_idx:04d}.jpg"
                 save_path = os.path.join(keyframes_dir, filename)
+                # 查找当前帧的检测结果并绘制框
+                fr = next((f for f in frame_results if f["frame_index"] == frame_idx), None)
+                if fr and fr.get("detections"):
+                    frame = _draw_boxes(frame, fr["detections"])
                 cv2.imwrite(save_path, frame)
                 evidence_frames.append(f"keyframes/{filename}")
                 saved += 1
