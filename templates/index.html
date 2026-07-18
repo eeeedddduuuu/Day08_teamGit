@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎬 智能内容审核工作台</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <!-- ===== 顶部导航 ===== -->
+    <header class="navbar">
+        <div class="nav-title">🎬 智能内容审核工作台</div>
+        <div class="nav-status">
+            <span class="status-dot"></span>
+            <span id="systemStatus">系统就绪</span>
+        </div>
+    </header>
+
+    <!-- ===== 主内容 ===== -->
+    <main class="container">
+
+        <!-- 上传区域 -->
+        <section class="upload-section">
+            <h2>📤 上传素材</h2>
+            <div class="upload-area" id="uploadArea">
+                <p>📁 点击选择 或 拖拽文件到此</p>
+                <input type="file" id="fileInput" accept="image/*,video/*" style="display:none;">
+                <button class="btn-primary" id="uploadBtn">选择文件</button>
+            </div>
+            <!-- 预览区域（新增） -->
+            <div id="previewArea" class="preview-area"></div>
+            <div id="uploadStatus" class="upload-status"></div>
+        </section>
+
+        <!-- 任务列表 -->
+        <section class="task-section">
+            <h2>📋 任务列表</h2>
+            <div id="taskList" class="task-list">
+                <p class="empty-tip">暂无任务，上传一个素材开始吧</p>
+            </div>
+        </section>
+
+        <!-- 任务详情 -->
+        <section class="detail-section" id="detailSection" style="display:none;">
+            <h2>📄 任务详情</h2>
+            <div id="taskDetail"></div>
+            <!-- 证据帧展示（新增） -->
+            <div id="evidenceArea" class="evidence-area"></div>
+        </section>
+
+    </main>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
