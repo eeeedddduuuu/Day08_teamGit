@@ -4,7 +4,7 @@ Team Content Review — Flask Application Entry
 """
 import os
 import sys
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 
 # Ensure project root on path
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -30,6 +30,12 @@ def create_app() -> Flask:
 
 
 app = create_app()
+
+
+@app.route('/')
+def index():
+    """Render the main workbench page."""
+    return render_template('index.html')
 
 
 if __name__ == '__main__':
