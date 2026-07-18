@@ -203,8 +203,9 @@ async function submitReview(jobId, verdict) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                manual_review: verdict,
-                review_comment: reason || ''
+                verdict: verdict,
+                reviewer: 'PO',
+                notes: reason || ''
             })
         });
         const data = await res.json();
@@ -305,7 +306,7 @@ async function showDetail(jobId) {
                 let frameUrl = '';
                 let frameLabel = '';
                 if (typeof frame === 'string') {
-                    frameUrl = frame;
+                    frameUrl = '/outputs/' + jobId + '/' + frame;
                     frameLabel = '证据帧';
                 } else if (typeof frame === 'object' && frame !== null) {
                     frameUrl = frame.url || '';
