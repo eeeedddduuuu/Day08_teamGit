@@ -1,6 +1,7 @@
-# 智能数字媒体内容审核系统
+# ContentGuard — 智能数字媒体内容审核工作台
 
-> Day08 CV 综合项目实战 — 方向 A：智能数字媒体内容审核系统
+> Day08 CV 综合项目实战 — 方向 A
+> 项目口号：机器初筛，人做决策，全程留档
 
 ## 技术栈
 
@@ -95,3 +96,26 @@ team_content_review/
 1. **模型未就绪** — 确保 `models/yolo11n.pt` 存在
 2. **端口被占用** — 使用 `--port` 参数更换端口
 3. **Python 版本** — 需要 Python 3.10+
+
+## 开发进度
+
+| 模块 | 负责人 | 状态 | 说明 |
+|---|---|---|---|
+| PRD / 系统设计 / 验收清单 | PO | ✅ 已完成 | `docs/PRD.md` 等4份文档 |
+| Flask API 全部8个接口 | 后端 | ✅ 已完成 | `routes/jobs.py` + `routes/review.py` |
+| 任务状态机 + 参数校验 | 后端 | ✅ 已完成 | `routes/validators.py` |
+| YOLO 检测封装 | CV | ⚠️ 待推送 | `services/detector.py` |
+| 审核规则引擎 | CV | ⚠️ 待推送 | `services/review_engine.py` |
+| 前端页面（上传/列表/详情） | 前端 | ✅ 已完成 | `static/` + `templates/` |
+| 测试用例 + 素材 | 测试 | ⏳ 待开始 | `tests/` |
+
+### Git 分支
+
+| 分支 | 内容 |
+|---|---|
+| `main` | 保护分支，仅合并 |
+| `backend/api` | 后端 API 完整实现 |
+| `po/docs` | PO 文档（已合并） |
+| `cv/detection` | CV 模块（待推送） |
+| `frontend/pages` | 前端页面（待创建分支） |
+| `test/cases` | 测试用例（待创建分支） |
