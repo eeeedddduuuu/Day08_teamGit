@@ -3,61 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎬 智能内容审核工作台</title>
+    <title>ContentGuard — 智能内容审核工作台</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 
     <!-- ===== 顶部导航 ===== -->
     <header class="navbar">
-        <div class="nav-title">🎬 智能内容审核工作台</div>
-        <div class="nav-status">
+        <div class="nav-left">
+            <span class="nav-logo">🛡️</span>
+            <span class="nav-title">ContentGuard</span>
+            <span class="nav-subtitle">智能内容审核工作台</span>
+        </div>
+        <div class="nav-right">
             <span class="status-dot"></span>
             <span id="systemStatus">系统就绪</span>
         </div>
     </header>
 
-    <!-- ===== 主内容 ===== -->
-    <main class="container">
+    <!-- ===== 主布局：左右两栏 ===== -->
+    <div class="app-layout">
 
-        <!-- 上传区域 -->
-        <section class="upload-section">
-            <h2>📤 上传素材</h2>
-            <div class="upload-area" id="uploadArea">
-                <p>📁 点击选择 或 拖拽文件到此</p>
-                <input type="file" id="fileInput" accept="image/*,video/*" style="display:none;">
-                <button class="btn-primary" id="uploadBtn">选择文件</button>
+        <!-- ===== 左侧面板 ===== -->
+        <aside class="sidebar">
+            <!-- 上传区 -->
+            <div class="upload-card">
+                <div class="card-header">
+                    <span class="card-icon">📤</span>
+                    <span>上传素材</span>
+                </div>
+                <div class="upload-zone" id="uploadArea">
+                    <div class="upload-zone-icon">📁</div>
+                    <p class="upload-zone-text">拖拽文件到此处<br>或点击下方按钮选择</p>
+                    <input type="file" id="fileInput" accept="image/*,video/*" hidden>
+                    <button class="btn-upload" id="uploadBtn">选择文件</button>
+                </div>
+                <div class="upload-meta">
+                    <input type="text" id="projectNameInput" class="input-text" placeholder="项目名称（选填）">
+                </div>
+                <div id="previewArea" class="upload-preview"></div>
+                <div id="uploadStatus" class="upload-feedback"></div>
             </div>
 
-            <!-- 项目名称输入框 -->
-            <div style="margin-top:16px;">
-                <label for="projectNameInput" style="font-size:14px;color:#475569;font-weight:500;">项目名称：</label>
-                <input type="text" id="projectNameInput" placeholder="输入项目名称（选填）" 
-                       style="padding:6px 12px;border:1px solid #cbd5e1;border-radius:6px;width:200px;font-size:14px;margin-left:8px;">
+            <!-- 任务列表 -->
+            <div class="task-list-card">
+                <div class="card-header">
+                    <span class="card-icon">📋</span>
+                    <span>任务列表</span>
+                    <span class="card-badge" id="taskCount">0</span>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="searchInput" class="input-text" placeholder="🔍 搜索任务...">
+                </div>
+                <div id="taskList" class="task-list">
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <p>暂无任务</p>
+                        <span>上传素材开始审核</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ===== 右侧主内容 ===== -->
+        <main class="main-content" id="mainContent">
+            <div class="welcome" id="welcomeView">
+                <div class="welcome-icon">🛡️</div>
+                <h2>欢迎使用 ContentGuard</h2>
+                <p>上传素材开始智能审核，或从左侧任务列表选择一个已完成的任务查看结果</p>
+                <div class="feature-cards">
+                    <div class="feature-card">
+                        <span class="feature-icon">🤖</span>
+                        <strong>AI 自动检测</strong>
+                        <span>YOLO 深度学习模型自动扫描画面</span>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">📊</span>
+                        <strong>规则引擎判定</strong>
+                        <span>三级审核结论：通过 / 待复核 / 不通过</span>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">👤</span>
+                        <strong>人工复核</strong>
+                        <span>修改机器结论，审核留痕可追溯</span>
+                    </div>
+                </div>
             </div>
 
-            <!-- 预览区域 -->
-            <div id="previewArea" class="preview-area"></div>
-            <div id="uploadStatus" class="upload-status"></div>
-        </section>
-
-        <!-- 任务列表 -->
-        <section class="task-section">
-            <h2>📋 任务列表</h2>
-            <div id="taskList" class="task-list">
-                <p class="empty-tip">暂无任务，上传一个素材开始吧</p>
+            <div class="detail-view" id="detailView" style="display:none;">
+                <div id="taskDetail"></div>
+                <div id="evidenceArea"></div>
             </div>
-        </section>
-
-        <!-- 任务详情 -->
-        <section class="detail-section" id="detailSection" style="display:none;">
-            <h2>📄 任务详情</h2>
-            <div id="taskDetail"></div>
-            <!-- 证据帧展示 -->
-            <div id="evidenceArea" class="evidence-area"></div>
-        </section>
-
-    </main>
+        </main>
+    </div>
 
     <script src="/static/app.js"></script>
 </body>
