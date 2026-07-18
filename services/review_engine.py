@@ -92,36 +92,43 @@ def evaluate(
         verdict = "reject"
         verdict_reason = (
             f"发现高风险类别 {best['class']}，"
-            f"置信度 {best['confidence']} >= {reject_conf}"
+            f"置信度 {best['confidence']:.2f} >= {reject_conf:.2f}"
         )
-        risk_detections = reject_candidates
+        # 收集所有风险检测（reject + review），按置信度降序排列
+        risk_detections = sorted(
+            reject_candidates + review_candidates,
+            key=lambda x: x["confidence"], reverse=True
+        )
 
     elif review_candidates or is_unstable:
+        verdict = "review"
+        reason_parts = []
         if review_candidates:
             best = max(review_candidates, key=lambda x: x["confidence"])
-            verdict = "review"
-            verdict_reason = (
+            reason_parts.append(
                 f"发现风险类别 {best['class']}，"
-                f"置信度 {best['confidence']} 在 [{review_conf}, {reject_conf}) 区间"
+                f"置信度 {best['confidence']:.2f} 在 [{review_conf:.2f}, {reject_conf:.2f}) 区间"
             )
-        else:
-            verdict = "review"
-            verdict_reason = "同一类别置信度在帧间波动 > 0.4，检测结果不稳定"
+        if is_unstable:
+            reason_parts.append(
+                "不同帧的检测结果不稳定（同一类别置信度波动 > 0.4）"
+            )
+        verdict_reason = "；".join(reason_parts)
 
         risk_detections = review_candidates + (
             all_risk_detections if is_unstable else []
         )
-        # 去重
+        # 去重 + 按置信度降序
         seen = set()
-        risk_detections = [
+        risk_detections = sorted([
             d for d in risk_detections
             if not (d["frame_index"], d["class"], d["confidence"]) in seen
             and not seen.add((d["frame_index"], d["class"], d["confidence"]))
-        ]
+        ], key=lambda x: x["confidence"], reverse=True)
 
     else:
         verdict = "pass"
-        verdict_reason = "未发现风险类别目标，素材正常"
+        verdict_reason = "未发现风险目标"
         risk_detections = []
 
     # ── 4. 确定证据帧（置信度最高的 1~3 帧） ──────────────
