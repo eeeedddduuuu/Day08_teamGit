@@ -46,19 +46,19 @@ def _generate_job_id() -> str:
     return now.strftime(f'%Y%m%d_%H%M%S_{hex_part}')
 
 
-def _job_dir(job_id: str) -> str:
-    """Get job directory path."""
-    return os.path.join(current_app.config['OUTPUTS_DIR'], job_id)
+def _job_dir(outputs_dir: str, job_id: str) -> str:
+    """Get job directory path. (thread-safe, no current_app dependency)"""
+    return os.path.join(outputs_dir, job_id)
 
 
-def _job_json_path(job_id: str) -> str:
-    """Get job.json path."""
-    return os.path.join(_job_dir(job_id), 'job.json')
+def _job_json_path(outputs_dir: str, job_id: str) -> str:
+    """Get job.json path. (thread-safe, no current_app dependency)"""
+    return os.path.join(_job_dir(outputs_dir, job_id), 'job.json')
 
 
-def _transition_status(job_id: str, new_status: str) -> dict:
-    """Transition a job to a new status and persist."""
-    job_path = _job_json_path(job_id)
+def _transition_status(outputs_dir: str, job_id: str, new_status: str) -> dict:
+    """Transition a job to a new status and persist. (thread-safe)"""
+    job_path = _job_json_path(outputs_dir, job_id)
     job = load_job(job_path)
 
     current_status = job.get('status', 'created')
@@ -79,19 +79,20 @@ def _transition_status(job_id: str, new_status: str) -> dict:
     return job
 
 
-def _run_analysis_async(job_id: str):
+def _run_analysis_async(job_id: str, outputs_dir: str):
     """
-    Background analysis thread.
+    Background analysis thread — uses explicit outputs_dir to avoid
+    Flask current_app proxy issues outside request context.
     Updates status -> running -> completed/failed.
     """
     try:
-        _transition_status(job_id, 'running')
+        _transition_status(outputs_dir, job_id, 'running')
 
         # Deferred import to avoid circular dependency
         from services.detector import detect
         from services.review_engine import evaluate
 
-        job_dir = _job_dir(job_id)
+        job_dir = _job_dir(outputs_dir, job_id)
         input_dir = os.path.join(job_dir, 'input')
         # Find the uploaded file in input/
         input_files = os.listdir(input_dir)
@@ -103,7 +104,7 @@ def _run_analysis_async(job_id: str):
         detection_result = detect(file_path, job_dir)
 
         # Load settings from job.json
-        job = load_job(_job_json_path(job_id))
+        job = load_job(_job_json_path(outputs_dir, job_id))
         settings = job.get('settings', None)
 
         # Run review engine
@@ -125,12 +126,12 @@ def _run_analysis_async(job_id: str):
         with open(root_report_path, 'w', encoding='utf-8') as f:
             json.dump(report, f, ensure_ascii=False, indent=2)
 
-        _transition_status(job_id, 'completed')
+        _transition_status(outputs_dir, job_id, 'completed')
 
-    except Exception as e:
+    except Exception:
         import traceback
         # Persist failed status with error
-        job_path = _job_json_path(job_id)
+        job_path = _job_json_path(outputs_dir, job_id)
         job = load_job(job_path)
         job['status'] = 'failed'
         job['completed_at'] = datetime.now().isoformat()
@@ -198,8 +199,9 @@ def create_job():
             return jsonify({'ok': False, 'error': '文件大小超过 500MB 限制'}), 400
 
         # Create job
+        outputs_dir = current_app.config['OUTPUTS_DIR']
         job_id = _generate_job_id()
-        job_dir = _job_dir(job_id)
+        job_dir = _job_dir(outputs_dir, job_id)
         input_dir = os.path.join(job_dir, 'input')
         os.makedirs(input_dir, exist_ok=True)
 
@@ -230,11 +232,15 @@ def create_job():
             'result_file': 'analysis_report.json',
             'error': None,
         }
-        save_job(_job_json_path(job_id), job)
+        save_job(_job_json_path(outputs_dir, job_id), job)
 
         # Transition to queued and start analysis in background
-        _transition_status(job_id, 'queued')
-        thread = threading.Thread(target=_run_analysis_async, args=(job_id,), daemon=True)
+        _transition_status(outputs_dir, job_id, 'queued')
+        thread = threading.Thread(
+            target=_run_analysis_async,
+            args=(job_id, outputs_dir),
+            daemon=True
+        )
         thread.start()
 
         return jsonify({'ok': True, 'job_id': job_id}), 201
@@ -289,7 +295,8 @@ def get_job(job_id):
         if not validate_job_id(job_id):
             return jsonify({'ok': False, 'error': '无效的任务编号格式'}), 400
 
-        job_path = _job_json_path(job_id)
+        outputs_dir = current_app.config['OUTPUTS_DIR']
+        job_path = _job_json_path(outputs_dir, job_id)
         if not os.path.exists(job_path):
             return jsonify({'ok': False, 'error': '任务不存在'}), 404
 
@@ -297,7 +304,7 @@ def get_job(job_id):
 
         # Attempt to load report if exists
         report = None
-        report_path = os.path.join(_job_dir(job_id), 'analysis_report.json')
+        report_path = os.path.join(_job_dir(outputs_dir, job_id), 'analysis_report.json')
         if os.path.exists(report_path):
             with open(report_path, 'r', encoding='utf-8') as f:
                 report = json.load(f)
@@ -320,7 +327,8 @@ def delete_job(job_id):
         if not validate_job_id(job_id):
             return jsonify({'ok': False, 'error': '无效的任务编号格式'}), 400
 
-        job_path = _job_json_path(job_id)
+        outputs_dir = current_app.config['OUTPUTS_DIR']
+        job_path = _job_json_path(outputs_dir, job_id)
         if not os.path.exists(job_path):
             return jsonify({'ok': False, 'error': '任务不存在'}), 404
 
@@ -333,7 +341,7 @@ def delete_job(job_id):
             }), 409
 
         # Delete entire job directory
-        job_dir = _job_dir(job_id)
+        job_dir = _job_dir(outputs_dir, job_id)
         shutil.rmtree(job_dir)
 
         return jsonify({'ok': True})

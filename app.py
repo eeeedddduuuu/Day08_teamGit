@@ -4,7 +4,7 @@ Team Content Review — Flask Application Entry
 """
 import os
 import sys
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template, send_from_directory
 
 # Ensure project root on path
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -30,6 +30,20 @@ def create_app() -> Flask:
 
 
 app = create_app()
+
+
+@app.route('/')
+def index():
+    """Render the main workbench page."""
+    return render_template('index.html')
+
+
+@app.route('/outputs/<job_id>/<path:filename>')
+def serve_output(job_id, filename):
+    """Serve files from the outputs directory (evidence frames, etc.)."""
+    outputs_dir = app.config['OUTPUTS_DIR']
+    job_dir = os.path.join(outputs_dir, job_id)
+    return send_from_directory(job_dir, filename)
 
 
 if __name__ == '__main__':

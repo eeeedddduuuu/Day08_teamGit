@@ -57,7 +57,12 @@ def analyze_job(job_id):
 
         # Start background analysis
         from routes.jobs import _run_analysis_async
-        thread = threading.Thread(target=_run_analysis_async, args=(job_id,), daemon=True)
+        outputs_dir = current_app.config['OUTPUTS_DIR']
+        thread = threading.Thread(
+            target=_run_analysis_async,
+            args=(job_id, outputs_dir),
+            daemon=True
+        )
         thread.start()
 
         return jsonify({'ok': True, 'job_id': job_id, 'status': 'queued'})
