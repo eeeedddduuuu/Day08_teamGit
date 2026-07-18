@@ -163,10 +163,22 @@ function renderTaskList(jobs) {
 }
 
 // ============================================================
-// 显示任务详情（含证据帧）
+// 显示任务详情（含证据帧 + 审核结论）
 // ============================================================
 async function showDetail(jobId) {
     try {
+        const verdictMap = {
+            'reject': '不通过',
+            'review': '待复核',
+            'pass': '通过'
+        };
+
+        const verdictColor = {
+            'reject': '#dc2626',
+            'review': '#d97706',
+            'pass': '#16a34a'
+        };
+
         const res = await fetch('/api/jobs/' + jobId);
         const data = await res.json();
 
@@ -176,6 +188,7 @@ async function showDetail(jobId) {
         }
 
         const job = data.job;
+        const report = data.report;
         currentJobId = jobId;
         detailSection.style.display = 'block';
 
@@ -187,29 +200,42 @@ async function showDetail(jobId) {
             'failed': '失败'
         }[job.status] || job.status;
 
-        // 基本信息
+        // 审核结论显示逻辑
+        let verdictDisplay = '待处理';
+        let verdictColorStyle = '#64748b';
+        if (report) {
+            // 优先使用人工审核结论，如果没有则显示机器结论
+            const finalVerdict = report.manual_review || report.auto_verdict;
+            if (finalVerdict && verdictMap[finalVerdict]) {
+                verdictDisplay = verdictMap[finalVerdict];
+                verdictColorStyle = verdictColor[finalVerdict] || '#64748b';
+            }
+        }
+
         taskDetail.innerHTML = `
             <div class="detail-content">
                 <div><div class="label">任务 ID</div><div class="value">${job.job_id}</div></div>
                 <div><div class="label">素材名称</div><div class="value">${job.asset_name || '未命名'}</div></div>
                 <div><div class="label">状态</div><div class="value"><span class="status-badge status-${job.status}">${statusText}</span></div></div>
                 <div><div class="label">创建时间</div><div class="value">${job.created_at || ''}</div></div>
-                <div><div class="label">审核结论</div><div class="value">${job.result || '待处理'}</div></div>
+                <div><div class="label">审核结论</div><div class="value"><span style="color:${verdictColorStyle};font-weight:600;">${verdictDisplay}</span></div></div>
+                <div><div class="label">审核依据</div><div class="value" style="font-size:13px;color:#475569;">${report && report.auto_verdict_reason ? report.auto_verdict_reason : '暂无审核依据'}</div></div>
                 <div><div class="label">错误信息</div><div class="value" style="color:#dc2626;">${job.error || '无'}</div></div>
             </div>
         `;
 
         // 证据帧
-        if (job.evidence_frames && job.evidence_frames.length > 0) {
-            let evHtml = '<h3 style="font-size:16px;margin:16px 0 8px;">📸 证据帧</h3>';
-            for (const frame of job.evidence_frames) {
+        if (report && report.evidence_frames && report.evidence_frames.length > 0) {
+            let evHtml = '<h3 style="font-size:16px;margin:16px 0 8px;">📸 证据帧</h3><div style="display:flex;flex-wrap:wrap;gap:12px;">';
+            for (const frame of report.evidence_frames) {
                 evHtml += `
                     <div class="evidence-frame">
-                        <img src="${frame.url}" alt="证据帧">
+                        <img src="${frame.url}" alt="证据帧" style="width:100%;border-radius:4px;max-width:160px;">
                         <div class="frame-label">${frame.label || '帧'}</div>
                     </div>
                 `;
             }
+            evHtml += '</div>';
             evidenceArea.innerHTML = evHtml;
         } else {
             evidenceArea.innerHTML = '';
