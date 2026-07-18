@@ -104,18 +104,18 @@ team_content_review/
 | PRD / 系统设计 / 验收清单 | PO | ✅ 已完成 | `docs/PRD.md` 等4份文档 |
 | Flask API 全部8个接口 | 后端 | ✅ 已完成 | `routes/jobs.py` + `routes/review.py` |
 | 任务状态机 + 参数校验 | 后端 | ✅ 已完成 | `routes/validators.py` |
-| YOLO 检测封装 | CV | ⚠️ 待推送 | `services/detector.py` |
-| 审核规则引擎 | CV | ⚠️ 待推送 | `services/review_engine.py` |
+| YOLO 检测封装 | CV | ✅ 已集成 | `services/detector.py` (377行) |
+| 审核规则引擎 | CV | ✅ 已集成 | `services/review_engine.py` (314行) |
+| 算法验证文档 | CV | ✅ 已集成 | `docs/ALGORITHM_VALIDATION.md` |
 | 前端页面（上传/列表/详情） | 前端 | ✅ 已完成 | `static/` + `templates/` |
-| 测试用例 + 素材 | 测试 | ⏳ 待开始 | `tests/` |
+| 测试用例 (94个) | 测试 | ✅ 已完成 | `tests/test_api.py` + `tests/test_review.py` |
 
-### Git 分支
+### Git 分支（已全部合并到 main）
 
-| 分支 | 内容 |
+| 分支 | 状态 |
 |---|---|
-| `main` | 保护分支，仅合并 |
-| `backend/api` | 后端 API 完整实现 |
-| `po/docs` | PO 文档（已合并） |
-| `cv/detection` | CV 模块（待推送） |
-| `frontend/pages` | 前端页面（待创建分支） |
-| `test/cases` | 测试用例（待创建分支） |
+| `main` | ✅ 全部代码已合并 |
+| `backend/api` | ✅ 已合并 |
+| `po/docs` | ✅ 已合并 |
+| `cv/detection` | ✅ 已合并 |
+| `test/cases` | ✅ 已合并 |
