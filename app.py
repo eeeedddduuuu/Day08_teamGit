@@ -4,7 +4,7 @@ Team Content Review — Flask Application Entry
 """
 import os
 import sys
-from flask import Flask, jsonify, render_template, send_from_directory
+from flask import Flask, jsonify, render_template, send_from_directory, request, Response
 
 # Ensure project root on path
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -40,10 +40,41 @@ def index():
 
 @app.route('/outputs/<job_id>/<path:filename>')
 def serve_output(job_id, filename):
-    """Serve files from the outputs directory (evidence frames, etc.)."""
+    """Serve files from outputs directory — supports video Range requests."""
+    import mimetypes
     outputs_dir = app.config['OUTPUTS_DIR']
-    job_dir = os.path.join(outputs_dir, job_id)
-    return send_from_directory(job_dir, filename)
+    filepath = os.path.join(outputs_dir, job_id, filename)
+    # 安全检查
+    real = os.path.realpath(filepath)
+    if not real.startswith(os.path.realpath(outputs_dir)):
+        return jsonify({"ok": False, "error": "路径非法"}), 403
+    if not os.path.isfile(real):
+        return jsonify({"ok": False, "error": "文件不存在"}), 404
+
+    file_size = os.path.getsize(real)
+    range_header = request.headers.get('Range', None)
+    mimetype, _ = mimetypes.guess_type(real)
+    if mimetype is None:
+        mimetype = 'application/octet-stream'
+
+    if range_header:
+        # 支持 Range 请求（视频播放必需）
+        byte_range = range_header.replace('bytes=', '').split('-')
+        start = int(byte_range[0]) if byte_range[0] else 0
+        end = int(byte_range[1]) if len(byte_range) > 1 and byte_range[1] else file_size - 1
+        if start >= file_size:
+            return Response(status=416)
+        length = end - start + 1
+        with open(real, 'rb') as f:
+            f.seek(start)
+            data = f.read(length)
+        resp = Response(data, 206, mimetype=mimetype, direct_passthrough=True)
+        resp.headers.add('Content-Range', f'bytes {start}-{end}/{file_size}')
+        resp.headers.add('Accept-Ranges', 'bytes')
+        resp.headers.add('Content-Length', str(length))
+        return resp
+    else:
+        return send_from_directory(os.path.join(outputs_dir, job_id), filename)
 
 
 if __name__ == '__main__':
