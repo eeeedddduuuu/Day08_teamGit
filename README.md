@@ -101,21 +101,28 @@ team_content_review/
 
 | 模块 | 负责人 | 状态 | 说明 |
 |---|---|---|---|
-| PRD / 系统设计 / 验收清单 | PO | ✅ 已完成 | `docs/PRD.md` 等4份文档 |
-| Flask API 全部8个接口 | 后端 | ✅ 已完成 | `routes/jobs.py` + `routes/review.py` |
-| 任务状态机 + 参数校验 | 后端 | ✅ 已完成 | `routes/validators.py` |
-| YOLO 检测封装 | CV | ✅ 已集成 | `services/detector.py` (377行) |
-| 审核规则引擎 | CV | ✅ 已集成 | `services/review_engine.py` (314行) |
-| 算法验证文档 | CV | ✅ 已集成 | `docs/ALGORITHM_VALIDATION.md` |
-| 前端页面（上传/列表/详情） | 前端 | ✅ 已完成 | `static/` + `templates/` |
-| 测试用例 (94个) | 测试 | ✅ 已完成 | `tests/test_api.py` + `tests/test_review.py` |
+| PRD / 系统设计 / 验收清单 / 演示脚本 | PO | ✅ | `docs/PRD.md` 等4份文档 |
+| Flask API 全部8个接口 | 后端 | ✅ | `routes/jobs.py` + `routes/review.py` |
+| 任务状态机 + 参数校验 | 后端 | ✅ | `routes/validators.py` |
+| YOLO 检测封装（含检测框绘制） | CV | ✅ | `services/detector.py` |
+| 审核规则引擎 | CV | ✅ | `services/review_engine.py` |
+| 算法验证文档 | CV | ✅ | `docs/ALGORITHM_VALIDATION.md` |
+| 前端页面（上传/列表/详情/审核按钮/删除） | 前端 | ✅ | `static/` + `templates/` |
+| 测试用例 (94个, 91 passed) | 测试 | ✅ | `tests/test_api.py` + `tests/test_review.py` |
+| 测试报告 + Bug记录(6个) | PO | ✅ | `docs/TEST_REPORT.md` + `docs/BUG_RECORD.md` |
 
-### Git 分支（已全部合并到 main）
+### 测试结果
 
-| 分支 | 状态 |
-|---|---|
-| `main` | ✅ 全部代码已合并 |
-| `backend/api` | ✅ 已合并 |
-| `po/docs` | ✅ 已合并 |
-| `cv/detection` | ✅ 已合并 |
-| `test/cases` | ✅ 已合并 |
+```
+94 tests: 91 passed, 3 failed (文案差异，非功能Bug)
+```
+
+### 小组成员
+
+| 角色 | 姓名 | 产出 |
+|---|---|---|
+| 产品负责人 | | PRD / 系统设计 / 验收清单 / 演示脚本 / 进度报告 |
+| 后端工程师 | | Flask API / 任务状态机 / 参数校验 |
+| CV 算法工程师 | | YOLO 检测 / 审核规则引擎 / 算法验证 |
+| 前端工程师 | | 工作台页面 / 上传 / 审核交互 |
+| 测试交付工程师 | | 94 测试用例 / 测试素材 / 打包 |
